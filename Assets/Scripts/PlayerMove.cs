@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.EnhancedTouch;
 public class PlayerMove : MonoBehaviour
 {
     private Rigidbody rb;
+    [SerializeField] private float maxMove;
 
     void Start()
     {
@@ -22,21 +23,24 @@ public class PlayerMove : MonoBehaviour
             Vector3 mousePos = Input.mousePosition;
             //Debug.Log(Input.mousePosition);
             Ray onScreenPoint = Camera.main.ScreenPointToRay(mousePos);
-            Debug.Log(onScreenPoint);
             
             RaycastHit hit;
             if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit))
             {
                 Vector3 loc = hit.point;
-                rb.MovePosition(transform.position + loc * Time.deltaTime * 10f);
-                
+                Debug.DrawLine(transform.position, loc, Color.blue, 10f);
+                Vector3 newLoc = transform.position + loc.normalized * maxMove;
+                rb.MovePosition(newLoc);
+
+                float angleDiff = Vector3.Angle(transform.position, newLoc);
+                transform.Rotate(0f, angleDiff, 0f);
             }
             
             /*
             Vector3 newPosition = transform.position + onScreenPoint.direction * 10f;
             rb.MovePosition(transform.position + newPosition * Time.deltaTime);
             */
-            Debug.DrawRay(onScreenPoint.origin, onScreenPoint.direction * 10f, Color.red, 10f);
+            Debug.DrawRay(onScreenPoint.origin, onScreenPoint.direction, Color.red, 10f);
         }
     }
 }
