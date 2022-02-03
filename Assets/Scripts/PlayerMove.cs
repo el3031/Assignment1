@@ -8,7 +8,10 @@ using UnityEngine.InputSystem.EnhancedTouch;
 public class PlayerMove : MonoBehaviour
 {
     private Rigidbody rb;
+    private bool grounded;
     [SerializeField] private float maxMove;
+    [SerializeField] private float jumpHeight;
+    [SerializeField] private float gravityScale;
 
     void Start()
     {
@@ -16,7 +19,7 @@ public class PlayerMove : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (Input.GetMouseButtonDown(0))
         {
@@ -25,22 +28,26 @@ public class PlayerMove : MonoBehaviour
             Ray onScreenPoint = Camera.main.ScreenPointToRay(mousePos);
             
             RaycastHit hit;
-            if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit))
+            if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit) && grounded)
             {
-                Vector3 loc = hit.point;
-                Debug.DrawLine(transform.position, loc, Color.blue, 10f);
-                Vector3 newLoc = transform.position + loc.normalized * maxMove;
-                rb.MovePosition(newLoc);
-
-                float angleDiff = Vector3.Angle(transform.position, newLoc);
-                transform.Rotate(0f, angleDiff, 0f);
+                Vector3 loc = (hit.point == transform.position) ? Vector3.zero : hit.point;
+                Debug.Log(hit.collider.gameObject.name);
+                float jumpForce = Mathf.Sqrt(jumpHeight * -2 * Physics2D.gravity.y * gravityScale);
+                rb.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);                
+                Vector3 tryLoc = loc - transform.position;
+                grounded = !grounded;
+                rb.velocity += tryLoc * Time.deltaTime * maxMove;
             }
-            
-            /*
-            Vector3 newPosition = transform.position + onScreenPoint.direction * 10f;
-            rb.MovePosition(transform.position + newPosition * Time.deltaTime);
-            */
+
             Debug.DrawRay(onScreenPoint.origin, onScreenPoint.direction, Color.red, 10f);
+        }
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("Ground"))
+        {
+            grounded = true;
         }
     }
 }
