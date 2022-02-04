@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class PlayerMove : MonoBehaviour
@@ -12,14 +13,41 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float maxMove;
     [SerializeField] private float jumpHeight;
     [SerializeField] private float gravityScale;
+    [SerializeField] private Transform ground;
+    private Vector3 startPosition;
 
     //instance variables needed for projectile shooting
     private GameObject butt;
+
+    //scoretracking features
+    private float time;
+    private int score;
+    [SerializeField] private Text scoreText;
+
+    void Awake()
+    {
+        DontDestroyOnLoad(transform.gameObject);
+    }
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         butt = transform.GetChild(0).gameObject;
+        startPosition = transform.position;
+
+        time = 0;
+        score = 1000;
+        ScoreChange(0);
+    }
+
+    void Update()
+    {
+        time += Time.deltaTime;
+
+        if (transform.position.y <= ground.position.y)
+        {
+            transform.position = startPosition;
+        }
     }
 
     // Update is called once per frame
@@ -75,6 +103,10 @@ public class PlayerMove : MonoBehaviour
         {
             grounded = true;
         }
+        else if (other.gameObject.CompareTag("Wall"))
+        {
+            ScoreChange(10);
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -84,5 +116,11 @@ public class PlayerMove : MonoBehaviour
             butt.SetActive(true);
             Destroy(other.gameObject);
         }
+    }
+
+    void ScoreChange(int change)
+    {
+        score -= change;
+        scoreText.text = "Score: " + score.ToString();
     }
 }
