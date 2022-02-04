@@ -1,43 +1,68 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.EnhancedTouch;
 
 
 public class PlayerMove : MonoBehaviour
 {
+    //instance variables needed for movement and rotation tracking
     private Rigidbody rb;
     private bool grounded;
+    private Quaternion newAngle = new Quaternion(0f, 0f, 0f, 0f);
     [SerializeField] private float maxMove;
     [SerializeField] private float jumpHeight;
     [SerializeField] private float gravityScale;
 
+    //instance variables needed for projectile shooting
+    private GameObject butt;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        butt = transform.GetChild(0).gameObject;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
         {
-            Vector3 mousePos = Input.mousePosition;
-            //Debug.Log(Input.mousePosition);
-            Ray onScreenPoint = Camera.main.ScreenPointToRay(mousePos);
-            
+            //for testing in editor
+            #if UNITY_EDITOR
+                Vector3 mousePos = Input.mousePosition;
+                Ray onScreenPoint = Camera.main.ScreenPointToRay(mousePos);
+            #elif UNITY_IPHONE
+                Touch touch = Input.GetTouch(0);
+                Vector3 touchPos = touch.position;
+                Ray onScreenPoint = Camera.main.ScreenPointToRay(touchPos);
+            #endif
+
             RaycastHit hit;
             if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit) && grounded)
             {
+                //finding the point that intersects with ground
                 Vector3 loc = (hit.point == transform.position) ? Vector3.zero : hit.point;
-                Debug.Log(hit.collider.gameObject.name);
+                
+                //calculating jumpForce according to specified jumpHeight
                 float jumpForce = Mathf.Sqrt(jumpHeight * -2 * Physics2D.gravity.y * gravityScale);
                 rb.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);                
-                Vector3 tryLoc = loc - transform.position;
                 grounded = !grounded;
+
+                //figure out the direction of movement in relation to current position
+                Vector3 tryLoc = loc - transform.position;
                 rb.velocity += tryLoc * Time.deltaTime * maxMove;
+
+                //run this if we're changing direction
+                if (loc != Vector3.zero)
+                {
+                    //finding out the new angle to face
+                    //we're only paying attention to horizontal movement
+                    Vector3 tryLocFlat = new Vector3(tryLoc.x, 0f, tryLoc.z);
+                    newAngle = Quaternion.LookRotation(tryLocFlat);
+                    Debug.Log(newAngle.eulerAngles);
+                }
             }
+            rb.rotation = Quaternion.Slerp(rb.rotation, newAngle, 0.9f);
 
             Debug.DrawRay(onScreenPoint.origin, onScreenPoint.direction, Color.red, 10f);
         }
@@ -45,9 +70,19 @@ public class PlayerMove : MonoBehaviour
 
     void OnCollisionEnter(Collision other)
     {
+        //detecting grounded
         if (other.gameObject.CompareTag("Ground"))
         {
             grounded = true;
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.name == "ProjectilePower")
+        {
+            butt.SetActive(true);
+            Destroy(other.gameObject);
         }
     }
 }
