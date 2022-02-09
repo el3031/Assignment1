@@ -24,15 +24,10 @@ public class PlayerMove : MonoBehaviour
     private int score;
     [SerializeField] private Text scoreText;
 
-    void Awake()
-    {
-        DontDestroyOnLoad(transform.gameObject);
-    }
-
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        butt = transform.GetChild(0).gameObject;
+        butt = transform.childCount != 1 ? null : transform.GetChild(0).gameObject;
         startPosition = transform.position;
 
         time = 0;
@@ -47,6 +42,7 @@ public class PlayerMove : MonoBehaviour
         if (transform.position.y <= ground.position.y)
         {
             transform.position = startPosition;
+            transform.rotation = Quaternion.identity;
         }
     }
 
@@ -105,12 +101,27 @@ public class PlayerMove : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("Wall"))
         {
+            //detecting if hitting one of the wall or small rotator objects
             ScoreChange(10);
         }
+
+        //applies to scene 2
+        if (other.gameObject.name == "BigRotate1" || other.gameObject.name == "BigRotate2")
+        {
+            //setting the player as a child of the big rotator so it rotates along
+            transform.parent = other.transform;
+        }
+    }
+
+    void OnCollisionExit(Collision other)
+    {
+        //once the player is not on the big rotator, it should stop rotating with it
+        transform.parent = null;
     }
 
     void OnTriggerEnter(Collider other)
     {
+        //scene 1 powers
         if (other.gameObject.name == "ProjectilePower")
         {
             butt.SetActive(true);
