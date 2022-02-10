@@ -24,9 +24,9 @@ public class ProjectileShooter : MonoBehaviour
 
     public void OnShoot()
     {
-        GameObject projectile = Instantiate(projectilePrefab, transform.position + Vector3.back * fudge, Quaternion.identity);
+        GameObject projectile = Instantiate(projectilePrefab, transform.position + transform.forward.normalized * fudge, Quaternion.identity);
         Rigidbody projectileRb = projectile.GetComponent<Rigidbody>();
-        projectileRb.AddForce(transform.forward * -1f * projectileForce);
+        projectileRb.AddForce(transform.forward * 1f * projectileForce);
     }
     
 }

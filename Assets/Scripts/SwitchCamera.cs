@@ -10,7 +10,8 @@ public class SwitchCamera : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        current = 0;
+        current = 1;
+        OnSwitchCamera();
     }
 
     // Update is called once per frame

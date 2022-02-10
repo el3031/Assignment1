@@ -26,7 +26,7 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private Text scoreText;
 
     //animation stuff
-    private Animator anim;
+    [SerializeField] private Animator anim;
 
     void Start()
     {
@@ -38,7 +38,6 @@ public class PlayerMove : MonoBehaviour
         score = 1000;
         ScoreChange(0);
 
-        anim = GetComponent<Animator>();
     }
 
     void Update()
