@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using UnityEngine.EventSystems   ;
 
 public class PlayerMove : MonoBehaviour
 {
@@ -15,34 +15,40 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float gravityScale;
     [SerializeField] private Transform ground;
     private Vector3 startPosition;
+    private Quaternion startRotation;
 
     //instance variables needed for projectile shooting
-    private GameObject butt;
+    [SerializeField] private GameObject butt;
 
     //scoretracking features
     private float time;
     private int score;
     [SerializeField] private Text scoreText;
 
+    //animation stuff
+    private Animator anim;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        butt = transform.childCount != 1 ? null : transform.GetChild(0).gameObject;
         startPosition = transform.position;
+        startRotation = transform.rotation;
 
         time = 0;
         score = 1000;
         ScoreChange(0);
+
+        anim = GetComponent<Animator>();
     }
 
     void Update()
     {
         time += Time.deltaTime;
 
-        if (transform.position.y <= ground.position.y)
+        if (transform.position.y <= ground.position.y - 1f /*adding this 1f as fudge factor*/)
         {
             transform.position = startPosition;
-            transform.rotation = Quaternion.identity;
+            transform.rotation = startRotation;
         }
     }
 
@@ -51,6 +57,7 @@ public class PlayerMove : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
         {
+            Debug.Log("mouse down");            
             //for testing in editor
             #if UNITY_EDITOR
                 Vector3 mousePos = Input.mousePosition;
@@ -62,14 +69,19 @@ public class PlayerMove : MonoBehaviour
             #endif
 
             RaycastHit hit;
-            if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit) && grounded)
+            Debug.Log(grounded);
+            
+            if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit) && grounded && !IsPointerOverUIObject())
             {
+                Debug.Log("jump");
+                
                 //finding the point that intersects with ground
                 Vector3 loc = (hit.point == transform.position) ? Vector3.zero : hit.point;
                 
                 //calculating jumpForce according to specified jumpHeight
                 float jumpForce = Mathf.Sqrt(jumpHeight * -2 * Physics2D.gravity.y * gravityScale);
-                rb.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);                
+                rb.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);
+                anim.SetTrigger("jump");                
                 grounded = !grounded;
 
                 //figure out the direction of movement in relation to current position
@@ -86,7 +98,7 @@ public class PlayerMove : MonoBehaviour
                     Debug.Log(newAngle.eulerAngles);
                 }
             }
-            rb.rotation = Quaternion.Slerp(rb.rotation, newAngle, 0.9f);
+            rb.rotation = Quaternion.Slerp(rb.rotation, newAngle.normalized, 0.9f);
 
             Debug.DrawRay(onScreenPoint.origin, onScreenPoint.direction, Color.red, 10f);
         }
@@ -95,13 +107,14 @@ public class PlayerMove : MonoBehaviour
     void OnCollisionEnter(Collision other)
     {
         //detecting grounded
-        if (other.gameObject.CompareTag("Ground"))
+        if (other.gameObject.layer == 3)
         {
             grounded = true;
         }
-        else if (other.gameObject.CompareTag("Wall"))
+        if (other.gameObject.CompareTag("Wall"))
         {
             //detecting if hitting one of the wall or small rotator objects
+            Debug.Log(true);
             ScoreChange(10);
         }
 
@@ -134,4 +147,13 @@ public class PlayerMove : MonoBehaviour
         score -= change;
         scoreText.text = "Score: " + score.ToString();
     }
+
+    private bool IsPointerOverUIObject() 
+    {
+        PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+        eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+        return results.Count > 0;
+ }
 }
