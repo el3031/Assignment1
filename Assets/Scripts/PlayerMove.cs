@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems   ;
+using UnityEngine.EventSystems;
 
 public class PlayerMove : MonoBehaviour
 {
@@ -67,13 +67,9 @@ public class PlayerMove : MonoBehaviour
                 Ray onScreenPoint = Camera.main.ScreenPointToRay(touchPos);
             #endif
 
-            RaycastHit hit;
-            Debug.Log(grounded);
-            
+            RaycastHit hit;            
             if (Physics.Raycast(onScreenPoint.origin, onScreenPoint.direction, out hit) && grounded && !IsPointerOverUIObject())
-            {
-                Debug.Log("jump");
-                
+            {                
                 //finding the point that intersects with ground
                 Vector3 loc = (hit.point == transform.position) ? Vector3.zero : hit.point;
                 
@@ -117,19 +113,32 @@ public class PlayerMove : MonoBehaviour
             ScoreChange(10);
         }
 
-        //applies to scene 2
         if (other.gameObject.name == "BigRotate1" || other.gameObject.name == "BigRotate2")
         {
-            //setting the player as a child of the big rotator so it rotates along
-            transform.parent = other.transform;
+           transform.parent = other.transform;
         }
     }
 
-    void OnCollisionExit(Collision other)
+    void OnCollisionExit()
     {
+        transform.parent = null;
+    }
+
+/*
+    void OnCollisionStay(Collision other)
+    {
+        //applies to scene 2
+        if (other.gameObject.name == "BigRotate1" || other.gameObject.name == "BigRotate2")
+        {
+            BigRotator rotator = other.gameObject.GetComponent<BigRotator>();
+            //setting the player as a child of the big rotator so it rotates along
+            transform.RotateAround(other.transform.position, Vector3.forward, rotator.rotationSpeed * rotator.direction);
+        }
+        
         //once the player is not on the big rotator, it should stop rotating with it
         transform.parent = null;
     }
+*/
 
     void OnTriggerEnter(Collider other)
     {
@@ -154,5 +163,5 @@ public class PlayerMove : MonoBehaviour
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
         return results.Count > 0;
- }
+    }
 }

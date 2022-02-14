@@ -9,7 +9,7 @@
                     "name": "Move",
                     "type": "Value",
                     "id": "0def6411-7b34-4329-a641-aa7c36ae6309",
-                    "expectedControlType": "Touch",
+                    "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -18,8 +18,8 @@
             "bindings": [
                 {
                     "name": "",
-                    "id": "a3edfbc8-f36e-44b4-8216-d758312074ba",
-                    "path": "<Touchscreen>/primaryTouch",
+                    "id": "dec4d3d7-c442-4403-a6e9-7f2448d10682",
+                    "path": "<Gamepad>/leftStick",
                     "interactions": "",
                     "processors": "",
                     "groups": "Touchscreen",
