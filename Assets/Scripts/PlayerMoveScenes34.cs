@@ -7,14 +7,26 @@ using UnityEngine.InputSystem;
 
 public class PlayerMoveScenes34 : MonoBehaviour
 {
+    //for player movement and rotation
     private Rigidbody rb;
     private Quaternion newAngle;
     private Vector3 moveVector;
     [SerializeField] private float maxMove;
     [SerializeField] private float sensitivity;
+    private Vector3 startPosition;
+    private Quaternion startRotation;
+    [SerializeField] private Transform ground;
 
+    //for player anim
     [SerializeField] private Animator anim;
+
+    //for touch tracking
     private HashSet<int> untrackedFingers;
+
+    //for keeping track of score
+    public float time;
+    public int score;
+    [SerializeField] private Text scoreText;
     
     
     // Start is called before the first frame update
@@ -22,6 +34,12 @@ public class PlayerMoveScenes34 : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         untrackedFingers = new HashSet<int>();
+
+        startRotation = transform.rotation;
+        startPosition = transform.position;
+
+        score = PlayerPrefs.GetInt("score");
+        time = PlayerPrefs.GetFloat("time"); 
     }
 
     // Update is called once per frame
@@ -61,7 +79,22 @@ public class PlayerMoveScenes34 : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (transform.position.y <= ground.position.y - 1f /*adding this 1f as fudge factor*/)
+        {
+            transform.position = startPosition;
+            transform.rotation = startRotation;
+        }
+    }
 
+    void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.CompareTag("Wall"))
+        {
+            ScoreChange(10);
+        }
+    }
 
     public void OnJump()
     {
@@ -78,11 +111,16 @@ public class PlayerMoveScenes34 : MonoBehaviour
         return results.Count > 0;
     }
 
-
     public void OnMove(InputAction.CallbackContext context){
         Vector2 direction = context.ReadValue<Vector2>();
         //Debug.Log("direction: " + direction + ", transform.right: " + transform.right + ", transform.forward: " + transform.forward + ", directionRelative: " + directionRelative);
 
         moveVector = transform.right * direction.x + transform.forward * direction.y;
+    }
+
+    void ScoreChange(int change)
+    {
+        score -= change;
+        scoreText.text = "Score: " + score.ToString();
     }
 }

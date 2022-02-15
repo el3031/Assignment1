@@ -21,8 +21,8 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private GameObject butt;
 
     //scoretracking features
-    private float time;
-    private int score;
+    public float time;
+    public int score;
     [SerializeField] private Text scoreText;
 
     //animation stuff
@@ -34,8 +34,8 @@ public class PlayerMove : MonoBehaviour
         startPosition = transform.position;
         startRotation = transform.rotation;
 
-        time = 0;
-        score = 1000;
+        time = PlayerPrefs.GetFloat("time", 0f);
+        score = PlayerPrefs.GetInt("score", 1000);
         ScoreChange(0);
 
     }
@@ -56,7 +56,7 @@ public class PlayerMove : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
         {
-            Debug.Log("mouse down");            
+
             //for testing in editor
             #if UNITY_EDITOR
                 Vector3 mousePos = Input.mousePosition;
@@ -90,7 +90,7 @@ public class PlayerMove : MonoBehaviour
                     //we're only paying attention to horizontal movement
                     Vector3 tryLocFlat = new Vector3(tryLoc.x, 0f, tryLoc.z);
                     newAngle = Quaternion.LookRotation(tryLocFlat);
-                    Debug.Log(newAngle.eulerAngles);
+
                 }
             }
             rb.rotation = Quaternion.Slerp(rb.rotation, newAngle.normalized, 0.9f);
@@ -124,22 +124,6 @@ public class PlayerMove : MonoBehaviour
         transform.parent = null;
     }
 
-/*
-    void OnCollisionStay(Collision other)
-    {
-        //applies to scene 2
-        if (other.gameObject.name == "BigRotate1" || other.gameObject.name == "BigRotate2")
-        {
-            BigRotator rotator = other.gameObject.GetComponent<BigRotator>();
-            //setting the player as a child of the big rotator so it rotates along
-            transform.RotateAround(other.transform.position, Vector3.forward, rotator.rotationSpeed * rotator.direction);
-        }
-        
-        //once the player is not on the big rotator, it should stop rotating with it
-        transform.parent = null;
-    }
-*/
-
     void OnTriggerEnter(Collider other)
     {
         //scene 1 powers
@@ -149,7 +133,7 @@ public class PlayerMove : MonoBehaviour
             Destroy(other.gameObject);
         }
     }
-
+    
     void ScoreChange(int change)
     {
         score -= change;

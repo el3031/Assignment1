@@ -6,10 +6,14 @@ public class ResizeObstacles : MonoBehaviour
 {
     [SerializeField] private float initial;
     [SerializeField] private float final;
-    [SerializeField] private float rate;
+    private float rate;
 
     private float target;
 
+    void Start()
+    {
+        rate = Random.Range(0.2f, 0.5f);
+    }    
     // Update is called once per frame
     void Update()
     {
