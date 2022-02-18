@@ -36,7 +36,12 @@ public class SceneChanger : MonoBehaviour
             PlayerPrefs.SetInt("score", score);
             PlayerPrefs.SetFloat("time", time);
 
-            SceneManager.LoadScene(nextScene);
+            OnSceneChange();
         }
+    }
+
+    public void OnSceneChange()
+    {
+        SceneManager.LoadScene(nextScene);
     }
 }
