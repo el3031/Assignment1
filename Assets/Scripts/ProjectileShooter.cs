@@ -10,18 +10,13 @@ public class ProjectileShooter : MonoBehaviour
     [SerializeField] private float fudge;
     [SerializeField] private float projectileForce;
     
-    // Start is called before the first frame update
+    //once the projectile is activated, enable the control button
     void Start()
     {
         shootButton.interactable = true;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    //instantiate a projectile and shoot it forward
     public void OnShoot()
     {
         GameObject projectile = Instantiate(projectilePrefab, transform.position + transform.forward.normalized * fudge, Quaternion.identity);

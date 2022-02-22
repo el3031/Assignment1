@@ -12,11 +12,13 @@ public class ResizeObstacles : MonoBehaviour
 
     void Start()
     {
+        //set the rate randomly
         rate = Random.Range(0.2f, 0.5f);
     }    
     // Update is called once per frame
     void Update()
     {
+        //once the scale has reached the target, make it scale the opposite way
         if (transform.localScale.x <= initial)
         {
             target = 1f;

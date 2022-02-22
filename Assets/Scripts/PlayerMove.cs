@@ -8,14 +8,15 @@ public class PlayerMove : MonoBehaviour
 {
     //instance variables needed for movement and rotation tracking
     private Rigidbody rb;
+    private Collider playerCollider;
     private bool grounded;
+    [SerializeField] private LayerMask groundLayer;
     private Quaternion newAngle = new Quaternion(0f, 0f, 0f, 0f);
     [SerializeField] private float maxMove;
-    [SerializeField] private float jumpHeight;
+    [SerializeField] private float jumpForce;
     [SerializeField] private float gravityScale;
-    [SerializeField] private Transform ground;
-    private Vector3 startPosition;
-    private Quaternion startRotation;
+    private float depth;
+
 
     //instance variables needed for projectile shooting
     [SerializeField] private GameObject butt;
@@ -24,6 +25,7 @@ public class PlayerMove : MonoBehaviour
     public float time;
     public int score;
     [SerializeField] private Text scoreText;
+    [SerializeField] private Text timeText;
 
     //animation stuff
     [SerializeField] private Animator anim;
@@ -31,24 +33,19 @@ public class PlayerMove : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        startPosition = transform.position;
-        startRotation = transform.rotation;
+        playerCollider = GetComponent<Collider>();
+        depth = playerCollider.bounds.extents.y + 0.1f;
+
 
         time = PlayerPrefs.GetFloat("time", 0f);
         score = PlayerPrefs.GetInt("score", 1000);
         ScoreChange(0);
-
     }
 
     void Update()
     {
         time += Time.deltaTime;
-
-        if (transform.position.y <= ground.position.y - 1f /*adding this 1f as fudge factor*/)
-        {
-            transform.position = startPosition;
-            transform.rotation = startRotation;
-        }
+        timeText.text = ((int) Mathf.Floor(time)).ToString();
     }
 
     // Update is called once per frame
@@ -56,7 +53,6 @@ public class PlayerMove : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0) || Input.touchCount > 0)
         {
-
             //for testing in editor
             #if UNITY_EDITOR
                 Vector3 mousePos = Input.mousePosition;
@@ -73,11 +69,9 @@ public class PlayerMove : MonoBehaviour
                 //finding the point that intersects with ground
                 Vector3 loc = (hit.point == transform.position) ? Vector3.zero : hit.point;
                 
-                //calculating jumpForce according to specified jumpHeight
-                float jumpForce = Mathf.Sqrt(jumpHeight * -2 * Physics2D.gravity.y * gravityScale);
                 rb.AddForce(jumpForce * Vector3.up, ForceMode.Impulse);
-                anim.SetTrigger("jump");                
-                grounded = !grounded;
+                anim.SetTrigger("jump");  
+                grounded = false;              
 
                 //figure out the direction of movement in relation to current position
                 Vector3 tryLoc = loc - transform.position;
@@ -90,27 +84,24 @@ public class PlayerMove : MonoBehaviour
                     //we're only paying attention to horizontal movement
                     Vector3 tryLocFlat = new Vector3(tryLoc.x, 0f, tryLoc.z);
                     newAngle = Quaternion.LookRotation(tryLocFlat);
-
                 }
             }
             rb.rotation = Quaternion.Slerp(rb.rotation, newAngle.normalized, 0.9f);
-
-            Debug.DrawRay(onScreenPoint.origin, onScreenPoint.direction, Color.red, 10f);
         }
     }
 
     void OnCollisionEnter(Collision other)
     {
-        //detecting grounded
-        if (other.gameObject.layer == 3)
-        {
-            grounded = true;
-        }
         if (other.gameObject.CompareTag("Wall"))
         {
             //detecting if hitting one of the wall or small rotator objects
-            Debug.Log(true);
             ScoreChange(10);
+        }
+        else if (other.gameObject.CompareTag("Ground"))
+        {
+            grounded = true;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
         }
 
         if (other.gameObject.name == "BigRotate1" || other.gameObject.name == "BigRotate2")
@@ -132,12 +123,16 @@ public class PlayerMove : MonoBehaviour
             butt.SetActive(true);
             Destroy(other.gameObject);
         }
+        else if (other.gameObject.CompareTag("Wall"))
+        {
+            ScoreChange(10);
+        }
     }
     
     void ScoreChange(int change)
     {
         score -= change;
-        scoreText.text = "Score: " + score.ToString();
+        scoreText.text = score.ToString();
     }
 
     private bool IsPointerOverUIObject() 

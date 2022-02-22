@@ -4,26 +4,14 @@ using UnityEngine;
 
 public class ProjectileCleanup : MonoBehaviour
 {
-    // Start is called before the first frame update
+    
     void Start()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
+        StartCoroutine(DestroySequence());
 
     }
 
-    void OnCollisionEnter(Collision other)
-    {
-        if (other.gameObject.CompareTag("Ground"))
-        {
-            StartCoroutine(DestroySequence());
-        }
-    }
-
+    //projectiles are destroyed 5 seconds after spawn
     IEnumerator DestroySequence()
     {
         yield return new WaitForSeconds(5f);

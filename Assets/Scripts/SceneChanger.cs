@@ -16,6 +16,7 @@ public class SceneChanger : MonoBehaviour
         transform.Rotate(Vector3.up * 0.5f);
     }
 
+    //goes into new scene upon trigger enter
     void OnTriggerEnter(Collider other)
     {
         if (other.gameObject.CompareTag("Player"))
@@ -23,6 +24,7 @@ public class SceneChanger : MonoBehaviour
             int score;
             float time;
             
+            //some if statements to make this work for both player scripts
             if (player != null)
             {
                 score = player.score;
@@ -33,6 +35,8 @@ public class SceneChanger : MonoBehaviour
                 score = player34.score;
                 time = player34.time;
             }
+            
+            //set player prefs to preserve score and time between scenes
             PlayerPrefs.SetInt("score", score);
             PlayerPrefs.SetFloat("time", time);
 
